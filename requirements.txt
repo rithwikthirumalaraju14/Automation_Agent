@@ -1,0 +1,4 @@
+langchain-groq
+flask
+phidata
+duckduckgo-search
