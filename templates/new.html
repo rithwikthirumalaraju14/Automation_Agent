@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskBot Pro - Intelligent Automation Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 95%;
+            max-width: 1200px;
+            height: 85vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .chat-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .header-buttons {
+            position: absolute;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 12px;
+        }
+
+        .clear-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            max-width: 85%;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.agent {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .message.agent .message-avatar {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+        }
+
+        .message-content {
+            background: white;
+            padding: 18px 24px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            line-height: 1.6;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.agent .message-content {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            color: #333;
+        }
+
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+
+        .message.user .message-content::before {
+            right: -20px;
+            border-left-color: #667eea;
+        }
+
+        .message.agent .message-content::before {
+            left: -20px;
+            border-right-color: #e3f2fd;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 8px;
+        }
+
+        .chat-input {
+            padding: 25px;
+            background: white;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 24px 24px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .task-input-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+        }
+
+        .message-input,
+        .task-input {
+            flex: 1;
+            padding: 16px 24px;
+            border: 2px solid #e0e0e0;
+            border-radius: 30px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .message-input:focus,
+        .task-input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+            background: white;
+        }
+
+        .send-btn,
+        .execute-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .send-btn:hover,
+        .execute-btn:hover {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+        }
+
+        .send-btn:disabled,
+        .execute-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 10px;
+            margin-left: 10px;
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+
+        .voice-btn:hover {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            transform: translateY(-2px);
+        }
+
+        .voice-btn.recording {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-btn.stop {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .voice-btn.stop:hover {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            margin-left: 60px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .typing-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #3498db;
+            animation: typing 1.6s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.3);
+        }
+
+        /* Enhanced markdown styling */
+        .message-content h1,
+        .message-content h2,
+        .message-content h3 {
+            margin: 18px 0 12px 0;
+            color: inherit;
+            font-weight: 600;
+        }
+
+        .message-content h1 {
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 8px;
+        }
+
+        .message-content h2 {
+            font-size: 1.3em;
+            color: #2c3e50;
+        }
+
+        .message-content h3 {
+            font-size: 1.1em;
+            color: #34495e;
+        }
+
+        .message-content p {
+            margin: 12px 0;
+            line-height: 1.7;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 18px 0;
+            padding-left: 30px;
+        }
+
+        .message-content li {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .message-content code {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2c3e50;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .message-content pre {
+            background: rgba(44, 62, 80, 0.05);
+            border: 1px solid rgba(44, 62, 80, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 18px 0;
+        }
+
+        .message-content pre code {
+            background: none;
+            color: #2c3e50;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .message-content blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 18px 0;
+            font-style: italic;
+            background: rgba(52, 152, 219, 0.05);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .message-content strong {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .message-content em {
+            font-style: italic;
+            color: #34495e;
+        }
+
+        /* Status indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #27ae60;
+        }
+
+        .status-processing {
+            background: #f39c12;
+        }
+
+        .status-offline {
+            background: #e74c3c;
+        }
+
+        .connection-status {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            align-items: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 98%;
+                height: 92vh;
+                border-radius: 20px;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+
+            .chat-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .header-buttons {
+                position: static;
+                transform: none;
+                margin-top: 15px;
+                justify-content: center;
+            }
+
+            .connection-status {
+                position: static;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .input-container,
+            .task-input-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .message-input,
+            .task-input,
+            .send-btn,
+            .execute-btn {
+                width: 100%;
+            }
+
+            .voice-controls {
+                justify-content: center;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(52, 152, 219, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="connection-status">
+                <span class="status-indicator status-online"></span>
+                <span id="connectionStatus">Connected</span>
+            </div>
+            <h1>🤖 TaskBot Pro - AI Automation Agent</h1>
+            <p>Your intelligent assistant for web automation and task execution with voice control</p>
+            <div class="header-buttons">
+                <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <p>Hello! I'm TaskBot Pro, your intelligent automation assistant with voice control capabilities. I can help you with web automation, data processing, and general task execution. Here's what I can do for you:</p>
+                    <ul>
+                        <li>🌐 Web automation and browser tasks</li>
+                        <li>📊 Data analysis and processing</li>
+                        <li>🔧 System administration tasks</li>
+                        <li>📝 Document processing and generation</li>
+                        <li>🔍 Information research and extraction</li>
+                        <li>⚙️ Custom workflow automation</li>
+                        <li>🎙️ Voice-powered task input</li>
+                    </ul>
+                    <p><strong>How to use automation tasks:</strong></p>
+                    <p>Use the task input field below to describe any automation task you need. You can type or use voice input! I'll execute it using intelligent browser automation.</p>
+                                        
+                    <p><strong>Voice Control:</strong> Click the microphone button to speak your automation tasks naturally!</p>
+                                        
+                    <p><strong>Example Tasks:</strong></p>
+                    <code>Navigate to http://localhost:8529/_db/_system/_admin/aardvark/index.html#collections, login with username 'root' and password 'testtest', then create a new collection named 'UserData'</code>
+                                        
+                    <p>Simply describe what you want to automate, and I'll handle the rest! 🚀</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="message-avatar">🤖</div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span>TaskBot Pro is working...</span>
+        </div>
+
+        <div class="chat-input">
+            <div class="input-container">
+                <input type="text" class="message-input" id="messageInput"
+                    placeholder="Ask me anything about automation, web scraping, or task execution..." autocomplete="off">
+                <div class="voice-controls">
+                    <button class="voice-btn" id="messageVoiceBtn" onclick="toggleVoiceInput('message')">
+                        🎙️ Voice
+                    </button>
+                </div>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">Send</button>
+            </div>
+            <div class="task-input-container">
+                <input type="text" class="task-input" id="taskInput"
+                    placeholder="Describe your automation task or use voice input..." autocomplete="off">
+                <div class="voice-controls">
+                    <button class="voice-btn" id="taskVoiceBtn" onclick="toggleVoiceInput('task')">
+                        🎙️ Voice
+                    </button>
+                </div>
+                <button class="execute-btn" onclick="executeTask()">Execute Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const taskInput = document.getElementById('taskInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // Voice recognition variables
+        let recognition;
+        let isRecognizing = false;
+        let currentVoiceTarget = null;
+
+        // Chat history for session persistence
+        let chatHistory = [];
+
+        // Auto-focus on message input
+        messageInput.focus();
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadChatHistory();
+            checkConnection();
+            
+            // Check connection every 30 seconds
+            setInterval(checkConnection, 30000);
+        });
+
+        // Handle Enter key for message input
+        messageInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Handle Enter key for task input
+        taskInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                executeTask();
+            }
+        });
+
+        function addMessage(content, isUser = false, timestamp = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'agent'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = isUser ? '👤' : '🤖';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+
+            if (isUser) {
+                messageContent.textContent = content;
+            } else {
+                messageContent.innerHTML = parseMarkdown(content);
+            }
+
+            if (timestamp) {
+                const timestampDiv = document.createElement('div');
+                timestampDiv.className = 'timestamp';
+                timestampDiv.textContent = new Date(timestamp).toLocaleTimeString();
+                messageContent.appendChild(timestampDiv);
+            }
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+
+            // Store in chat history
+            chatHistory.push({
+                content: content,
+                isUser: isUser,
+                timestamp: timestamp || new Date().toISOString()
+            });
+
+            return messageDiv;
+        }
+
+        function parseMarkdown(text) {
+            let html = text
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^\d+\.\s+(.*)$/gim, '<li>$1</li>')
+                .replace(/^[-*+]\s+(.*)$/gim, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>');
+
+            html = html.replace(/(<li>.*?<\/li>)(\s*<li>.*?<\/li>)*/g, function (match) {
+                return '<ul>' + match + '</ul>';
+            });
+
+            if (!html.startsWith('<h') && !html.startsWith('<ul') && !html.startsWith('<ol') && !html.startsWith('<pre')) {
+                html = '<p>' + html + '</p>';
+            }
+
+            return html;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = `Error: ${message}`;
+            chatMessages.appendChild(errorDiv);
+            scrollToBottom();
+            
+            // Auto-remove error after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            chatMessages.appendChild(successDiv);
+            scrollToBottom();
+            
+            // Auto-remove success message after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.remove();
+                }
+            }, 3000);
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusIndicator = document.querySelector('.status-indicator');
+            if (isConnected) {
+                statusIndicator.className = 'status-indicator status-online';
+                connectionStatus.textContent = 'Connected';
+            } else {
+                statusIndicator.className = 'status-indicator status-offline';
+                connectionStatus.textContent = 'Disconnected';
+            }
+        }
+
+        async function checkConnection() {
+            try {
+                const response = await fetch('/api/health', { method: 'GET' });
+                updateConnectionStatus(response.ok);
+            } catch (error) {
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Voice Recognition Functions
+        function toggleVoiceInput(target) {
+            if (isRecognizing) {
+                stopVoiceRecognition();
+            } else {
+                startVoiceRecognition(target);
+            }
+        }
+
+        function startVoiceRecognition(target) {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showError("Speech Recognition not supported in this browser.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = "en-US";
+
+            currentVoiceTarget = target;
+            const voiceBtn = document.getElementById(target + 'VoiceBtn');
+            const targetInput = target === 'message' ? messageInput : taskInput;
+
+            recognition.onstart = function () {
+                isRecognizing = true;
+                voiceBtn.textContent = '🛑 Stop';
+                voiceBtn.classList.add('recording');
+                showSuccess('Voice recognition started. Speak now...');
+            };
+
+            recognition.onerror = function (event) {
+                console.error("Recognition error:", event.error);
+                showError(`Voice recognition error: ${event.error}`);
+                resetVoiceButton();
+            };
+
+            recognition.onend = function () {
+                isRecognizing = false;
+                resetVoiceButton();
+                showSuccess('Voice recognition stopped.');
+            };
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                if (finalTranscript) {
+                    targetInput.value += finalTranscript;
+                    targetInput.dispatchEvent(new Event('input'));
+                }
+            };
+
+            recognition.start();
+        }
+
+        function stopVoiceRecognition() {
+            if (recognition && isRecognizing) {
+                recognition.stop();
+                isRecognizing = false;
+                resetVoiceButton();
+            }
+        }
+
+        function resetVoiceButton() {
+            const messageVoiceBtn = document.getElementById('messageVoiceBtn');
+            const taskVoiceBtn = document.getElementById('taskVoiceBtn');
+            
+            messageVoiceBtn.textContent = '🎙️ Voice';
+            taskVoiceBtn.textContent = '🎙️ Voice';
+            messageVoiceBtn.classList.remove('recording');
+            taskVoiceBtn.classList.remove('recording');
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+
+            addMessage(message, true, new Date().toISOString());
+            messageInput.value = '';
+
+            showTypingIndicator();
+
+            try {
+                // Simulate API call - replace with actual backend endpoint
+                const response = await simulateApiCall('/api/chat', {
+                    message: message,
+                    history: chatHistory.slice(-10) // Send last 10 messages for context
+                });
+
+                hideTypingIndicator();
+
+                if (response.success) {
+                    addMessage(response.response, false, response.timestamp);
+                } else {
+                    showError(response.error || "Failed to get response from server");
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                showError("Network error. Please try again.");
+                console.error("Error:", error);
+            } finally {
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Send';
+                messageInput.focus();
+            }
+        }
+
+        async function executeTask() {
+            const task = taskInput.value.trim();
+            if (!task) return;
+
+            taskInput.disabled = true;
+            const executeBtn = document.querySelector('.execute-btn');
+            executeBtn.disabled = true;
+            executeBtn.textContent = 'Executing...';
+
+            addMessage(`Task: ${task}`, true, new Date().toISOString());
+            taskInput.value = '';
+
+            showTypingIndicator();
+
+            try {
+                // Simulate API call - replace with actual backend endpoint
+                const response = await simulateApiCall('/api/execute', {
+                    task: task,
+                    history: chatHistory.slice(-5) // Send last 5 messages for context
+                });
+
+                hideTypingIndicator();
+
+                if (response.success) {
+                    addMessage(response.result, false, response.timestamp);
+                    showSuccess("Task executed successfully!");
+                } else {
+                    showError(response.error || "Failed to execute task");
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                showError("Network error. Please try again.");
+                console.error("Error:", error);
+            } finally {
+                taskInput.disabled = false;
+                executeBtn.disabled = false;
+                executeBtn.textContent = 'Execute Task';
+                taskInput.focus();
+            }
+        }
+
+        function clearChat() {
+            chatMessages.innerHTML = '';
+            chatHistory = [];
+            
+            // Add the initial welcome message back
+            addMessage(`Hello! I'm TaskBot Pro, your intelligent automation assistant with voice control capabilities. I can help you with web automation, data processing, and general task execution. How can I assist you today?`, false);
+            
+            showSuccess("Chat history cleared");
+        }
+
+        function loadChatHistory() {
+            // In a real app, you would load from localStorage or a backend
+            // For now, we'll just keep the initial welcome message
+        }
+
+        // Simulate API call (replace with actual fetch calls in production)
+        function simulateApiCall(endpoint, data) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (endpoint === '/api/chat') {
+                        resolve({
+                            success: true,
+                            response: generateResponse(data.message),
+                            timestamp: new Date().toISOString()
+                        });
+                    } else if (endpoint === '/api/execute') {
+                        resolve({
+                            success: true,
+                            result: generateTaskResult(data.task),
+                            timestamp: new Date().toISOString()
+                        });
+                    } else if (endpoint === '/api/health') {
+                        resolve({ ok: true });
+                    }
+                }, 1500 + Math.random() * 1000); // Random delay between 1.5-2.5 seconds
+            });
+        }
+
+        function generateResponse(message) {
+            const responses = [
+                `I understand you're asking about "${message}". Here's what I can tell you about this topic...`,
+                `Great question! Regarding "${message}", here are the key points you should know...`,
+                `For the task "${message}", I recommend the following approach...`,
+                `I've analyzed your request about "${message}" and here's my detailed response...`,
+                `Based on my knowledge, here's the information you requested about "${message}"...`
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            // Sometimes include code examples
+            if (Math.random() > 0.5) {
+                return `${randomResponse}\n\nHere's an example:\n\n\`\`\`javascript\n// Sample automation code\nasync function automateTask() {\n  await navigateTo('https://example.com');\n  await clickElement('#login-button');\n  await typeText('#username', 'your_username');\n  await typeText('#password', 'your_password');\n  await clickElement('#submit-button');\n}\n\`\`\``;
+            }
+            
+            return randomResponse;
+        }
+
+        function generateTaskResult(task) {
+            const actions = [
+                `I've successfully executed the task: "${task}". The automation completed without errors.`,
+                `Task completed: "${task}". All requested actions were performed successfully.`,
+                `The automation task "${task}" has been executed. Here are the results...`,
+                `I've processed your automation request for "${task}". Everything worked as expected.`,
+                `Your task "${task}" has been completed successfully. Let me know if you need anything else!`
+            ];
+            
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+            
+            // Sometimes include details
+            if (Math.random() > 0.5) {
+                return `${randomAction}\n\nDetails:\n- Navigated to target page\n- Located all required elements\n- Performed ${Math.floor(Math.random() * 5) + 2} actions\n- Verified successful completion`;
+            }
+            
+            return randomAction;
+        }
+    </script>
+</body>
+</html>
